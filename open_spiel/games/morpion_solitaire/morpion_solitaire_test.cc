@@ -26,6 +26,20 @@ namespace testing = open_spiel::testing;
 void BasicMorpionTests() {
   testing::LoadGameTest("morpion_solitaire");
   testing::RandomSimTest(*LoadGame("morpion_solitaire"), 10);
+  testing::RandomSimTestWithUndo(*LoadGame("morpion_solitaire"), 10);
+}
+
+void UndoRestoresReturnsTest() {
+  auto game = LoadGame("morpion_solitaire");
+  auto state = game->NewInitialState();
+  const double returns_before_action = state->Returns().at(0);
+  const Action action = state->LegalActions().at(0);
+
+  state->ApplyAction(action);
+  SPIEL_CHECK_EQ(state->Returns().at(0), returns_before_action + 1);
+
+  state->UndoAction(kDefaultPlayerId, action);
+  SPIEL_CHECK_EQ(state->Returns().at(0), returns_before_action);
 }
 
 void MoveConversionTest() {
@@ -51,6 +65,7 @@ void LineOverlapsTest() {
 
 int main(int argc, char** argv) {
   open_spiel::morpion_solitaire::BasicMorpionTests();
+  open_spiel::morpion_solitaire::UndoRestoresReturnsTest();
   open_spiel::morpion_solitaire::MoveConversionTest();
   open_spiel::morpion_solitaire::LineOverlapsTest();
 }
